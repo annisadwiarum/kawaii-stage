@@ -28,7 +28,7 @@ function Page() {
 
         <div className="flex justify-center items-center h-screen">
           <div className="w-80 flex flex-col items-center gap-4 bg-card border rounded-lg p-6 shadow-2xl">
-            <h1 className="font-bold text-2xl text-primary">Welcome!</h1>
+            <h1 className="font-bold text-2xl text-primary">Merhabaaaaaaaa annisa hasballah habibi !!</h1>
             <Avatar>
               {session.user?.image && (
                 <AvatarImage
