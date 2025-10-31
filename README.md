@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kawaii Stage
 
-## Getting Started
+Kawaii Stage is a vibrant, neon-inspired Japanese learning hub owned by **Nissa-Chan**. The landing experience blends bite-sized lessons, daily challenges, and a mini-game arcade to keep learners hyped while tracking progress through streaks, XP, and badges.
 
-First, run the development server:
+## ✨ Highlights
+
+- **Hero Glow** – “Learn Japanese the Kawaii Way” hero with animated focus tags (Hiragana, Kanji, Culture, Slang).
+- **Learning Modules** – Four curated flows (Bite-Sized Lessons, Daily Kawaii Challenge, Real Talk Audio, Hyper Focus Mode) with gradient icons.
+- **Today’s Phrase** – Auto-rotating carousel featuring kana, romaji, and real-life context to spark daily practice.
+- **Progress Sneak Peek** – Quick glance at streak best, Sakura badge count, and weekly XP.
+- **Mini Game Arcade** – Kana Speed Tap, Emoji Phrase Match, Culture Trivia Rush preview cards plus Sakura Coin CTA.
+- **Waitlist & Footer** – Animated waitlist modal, plus footer badge “Made with senpai energy” and social-style quick links.
+
+## 🔐 Authentication Flow
+
+- Every “Mulai Belajar”, “Coba Mini Game”, and game preview CTA checks for a session.
+- New or signed-out visitors are routed to **`/sign-in`** (custom page) to authenticate via Google OAuth before accessing modules or arcade.
+- Logged-in users get a personalized welcome modal greeting them by name with a “Let’s go!” confirmation to jump straight to the desired section.
+
+## 🧰 Tech Stack
+
+- [Next.js 15](https://nextjs.org/) (App Router) + TypeScript
+- Tailwind CSS & custom utility tokens
+- Framer Motion for micro-interactions & modals
+- NextAuth (Google OAuth provider) with global `SessionProvider`
+- lucide-react iconography + custom UI primitives
+
+## 🚀 Local Development
 
 ```bash
-npm run dev
-# or
+# install dependencies
+yarn
+
+# run dev server
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# lint codebase
+yarn lint
+
+# build production bundle
+yarn build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit `http://localhost:3000` to explore the landing experience. Sign-in flows redirect to Google OAuth when a Google client ID/secret is configured (via `.env.local`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Key Pages & Components
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Path | Description |
+| --- | --- |
+| `src/app/page.tsx` | Main landing page composing hero, modules, arcade, contact, and footer sections. |
+| `src/app/sign-in/page.tsx` | Stylized sign-in portal with feature highlights and Google SSO button. |
+| `src/components/HeroSection.tsx` | Hero CTA logic (auth gating + welcome modal). |
+| `src/components/ProjectsSection.tsx` | Daily phrase, progress preview, and game arcade grid. |
+| `src/components/WelcomeModal.tsx` | Shared modal component greeting authenticated users. |
 
-## Learn More
+## 🛠️ Environment Setup
 
-To learn more about Next.js, take a look at the following resources:
+Create an `.env.local` file with your NextAuth secrets:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Restart `yarn dev` after editing environment values. With auth configured, returning users land on a personalized onboarding modal while new explorers are guided through the `/sign-in` stage.
