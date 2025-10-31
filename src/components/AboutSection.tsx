@@ -3,34 +3,86 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { BookOpen, Mic2, Sparkles, Timer } from "lucide-react";
+
+const modules = [
+  {
+    title: "Bite-Sized Lessons",
+    description: "Micro lesson interaktif buat hiragana, katakana, dan kanji biar gampang nempel.",
+    icon: BookOpen,
+    gradient: "from-indigo-500 to-purple-500",
+  },
+  {
+    title: "Daily Kawaii Challenge",
+    description: "Tantangan 5 menit dengan video, audio, dan emoji cues yang bikin belajar berasa game.",
+    icon: Sparkles,
+    gradient: "from-pink-500 to-orange-500",
+  },
+  {
+    title: "Real Talk Audio",
+    description: "Latihan dialog asli dari anak Tokyo sampai Osaka, lengkap sama slang kekiniannya.",
+    icon: Mic2,
+    gradient: "from-sky-500 to-teal-500",
+  },
+  {
+    title: "Hyper Focus Mode",
+    description: "Timer, lo-fi beats, dan streak tracker biar kamu konsisten setiap hari.",
+    icon: Timer,
+    gradient: "from-rose-500 to-indigo-500",
+  },
+];
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 px-6 md:px-16 bg-zinc-900">
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="max-w-3xl mx-auto text-center"
-      >
-        <h2 className="text-3xl md:text-4xl font-semibold mb-4 text-indigo-400">
-          Tentang Saya
-        </h2>
-        <p className="text-gray-300 text-md md:text-lg leading-relaxed">
-          Gue adalah seorang <strong>Frontend Developer</strong> yang suka bikin
-          antarmuka yang kece, ringan, dan responsif. Biasanya gue ngulik pake{" "}
-          <span className="text-white font-medium">
-            Next.js, TypeScript, Tailwind
+    <section
+      id="modules"
+      className="bg-zinc-900 py-20 px-6 md:px-16"
+    >
+      <div className="mx-auto max-w-5xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
+          <span className="text-xs uppercase tracking-[0.3em] text-indigo-300/70">
+            Learning Flow
           </span>
-          , dan kalau perlu, gue juga bisa turun ke{" "}
-          <span className="text-white font-medium">Node.js atau Laravel</span>.
-        </p>
-        <p className="text-gray-400 text-sm mt-4">
-          Nggak cuma koding, gue juga peduli soal user experience dan detail
-          animasi kecil yang bikin beda.
-        </p>
-      </motion.div>
+          <h2 className="mt-4 text-3xl font-semibold text-white md:text-4xl">
+            Turun langsung ke bahasa Jepang tanpa pusing
+          </h2>
+          <p className="mt-3 text-base text-gray-300 md:text-lg">
+            Semua lesson dikurasi biar kamu bisa nyelipin belajar di sela aktivitas. Tinggal pilih level, unlock combo, dan lanjut tanpa nunggu sensei.
+          </p>
+        </motion.div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
+          {modules.map((module) => {
+            const Icon = module.icon;
+            return (
+              <motion.div
+                key={module.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true, margin: "-80px" }}
+                className="group rounded-2xl border border-white/5 bg-zinc-950/60 p-6 shadow-lg shadow-black/20 transition-transform duration-300 hover:-translate-y-1"
+              >
+                <div className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${module.gradient}`}>
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">
+                  {module.title}
+                </h3>
+                <p className="mt-2 text-sm text-gray-300">
+                  {module.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
