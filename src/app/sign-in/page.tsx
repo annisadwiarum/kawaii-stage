@@ -2,9 +2,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/theme/theme-toggle";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
 const FeatureBullet = ({
@@ -23,6 +22,10 @@ const FeatureBullet = ({
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const rawRedirect = searchParams.get("redirect");
+  const redirectTarget = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/";
 
   if (status === "loading") {
     return (
@@ -45,10 +48,6 @@ export default function Page() {
         <div className="absolute left-[15%] top-[40%] h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
         <div className="absolute right-[10%] bottom-[20%] h-56 w-56 rounded-full bg-sky-500/20 blur-[110px]" />
       </div>
-
-      {/* <div className="fixed right-6 top-6 z-20">
-        <ModeToggle />
-      </div> */}
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
         <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1.2fr_0.8fr]">
@@ -117,7 +116,7 @@ export default function Page() {
                   <div className="grid w-full gap-3">
                     <Button
                       className="w-full bg-pink-500 text-white hover:bg-pink-400"
-                      onClick={() => router.push("/")}
+                      onClick={() => router.push(redirectTarget)}
                     >
                       Masuk ke Kawaii Stage
                     </Button>
@@ -144,10 +143,12 @@ export default function Page() {
                       kami ya~
                     </p>
                     </div>
-                    <img src="gif/happy.gif" alt="Deskripsi gambar" width="180" height="105"></img>
+                    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl">
+                      ✨
+                    </div>
                   <div className="flex flex-col gap-6">
                     <Button
-                      onClick={() => signIn("google", { callbackUrl: "/" })}
+                      onClick={() => signIn("google", { callbackUrl: redirectTarget })}
                       className="flex w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/90 py-3 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.02] hover:bg-white"
                     >
                       <FcGoogle className="text-xl" />

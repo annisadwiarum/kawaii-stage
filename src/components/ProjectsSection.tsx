@@ -1,10 +1,12 @@
 "use client";
 
 import WelcomeModal from "@/components/WelcomeModal";
+import { lessons } from "@/data/lessons";
+import { useOverallLessonProgress } from "@/hooks/useLessonProgress";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Compass,
   Flame,
@@ -55,12 +57,6 @@ const phrases = [
   },
 ];
 
-const progressStats = [
-  { title: "Streak Best", value: "21", suffix: "hari" },
-  { title: "Badge Sakura", value: "12", suffix: "koleksi" },
-  { title: "XP Mingguan", value: "2.4k", suffix: "poin" },
-];
-
 const games = [
   {
     title: "Kana Speed Tap",
@@ -85,8 +81,34 @@ export default function ProjectsSection() {
   const [activePhrase, setActivePhrase] = useState(0);
   const [selectedGameTitle, setSelectedGameTitle] = useState<string | null>(null);
   const [isArcadeModalOpen, setIsArcadeModalOpen] = useState(false);
+  const { progressMap } = useOverallLessonProgress();
 
   const isSessionLoading = status === "loading";
+
+  const lessonSummary = useMemo(() => {
+    const totalCompleted = lessons.reduce((acc, lesson) => {
+      const progress = progressMap[lesson.id];
+      if (!progress) return acc;
+      return progress.completedStepIds.length >= lesson.steps.length ? acc + 1 : acc;
+    }, 0);
+
+    const xpEarned = lessons.reduce((acc, lesson) => {
+      const progress = progressMap[lesson.id];
+      if (!progress) return acc;
+      if (progress.completedStepIds.length >= lesson.steps.length) {
+        return acc + lesson.xpReward;
+      }
+      return acc;
+    }, 0);
+
+    const streakApprox = Math.max(totalCompleted * 3, xpEarned > 0 ? 3 : 0);
+
+    return {
+      streakBest: streakApprox,
+      badgeCount: totalCompleted,
+      weeklyXp: xpEarned,
+    };
+  }, [progressMap]);
 
   const openArcadeGate = (gameTitle?: string) => {
     if (isSessionLoading) return;
@@ -228,20 +250,27 @@ export default function ProjectsSection() {
               Sistem poin &amp; badge biar belajar makin nagih
             </p>
             <div className="mt-6 space-y-5">
-              {progressStats.map((stat) => (
-                <div
-                  key={stat.title}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
-                >
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-indigo-200/70">
-                      {stat.title}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-300">{stat.suffix}</p>
-                  </div>
-                  <p className="text-2xl font-semibold text-white">{stat.value}</p>
+              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200/70">Streak Best</p>
+                  <p className="mt-1 text-sm text-gray-300">hari berturut-turut</p>
                 </div>
-              ))}
+                <p className="text-2xl font-semibold text-white">{lessonSummary.streakBest}</p>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200/70">Badge Sakura</p>
+                  <p className="mt-1 text-sm text-gray-300">lesson mastered</p>
+                </div>
+                <p className="text-2xl font-semibold text-white">{lessonSummary.badgeCount}</p>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-indigo-200/70">XP Mingguan</p>
+                  <p className="mt-1 text-sm text-gray-300">dari micro lessons</p>
+                </div>
+                <p className="text-2xl font-semibold text-white">{lessonSummary.weeklyXp}</p>
+              </div>
             </div>
             <p className="mt-6 text-xs text-indigo-200/70">
               Nantinya leaderboard &amp; event komunitas bakal drop tiap akhir minggu.

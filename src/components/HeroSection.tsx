@@ -33,7 +33,13 @@ export default function HeroSection() {
   const handleModalConfirm = () => {
     if (!modalIntent) return;
 
-    const sectionId = modalIntent === "modules" ? "modules" : "games";
+    if (modalIntent === "modules") {
+      router.push("/lessons");
+      setModalIntent(null);
+      return;
+    }
+
+    const sectionId = "games";
     const destination = document.getElementById(sectionId);
     if (destination) {
       destination.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -2,8 +2,10 @@
 
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { BookOpen, Mic2, Sparkles, Timer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const modules = [
   {
@@ -82,6 +84,18 @@ export default function AboutSection() {
             );
           })}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-40px" }}
+          className="mt-12 flex justify-center"
+        >
+          <Button asChild className="rounded-full bg-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-500/30 hover:bg-pink-400">
+            <Link href="/lessons">Jelajahi Micro Lessons</Link>
+          </Button>
+        </motion.div>
       </div>
     </section>
   );
