@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-slot": "^1.2.3",
@@ -17,6 +19,7 @@
     "clsx": "^2.1.1",
     "dropdown-menu": "^0.1.1",
     "framer-motion": "^12.23.6",
+    "kana-svg-data": "^0.0.2",
     "lucide-react": "^0.535.0",
     "next": "15.4.1",
     "next-auth": "^4.24.11",

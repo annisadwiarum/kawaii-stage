@@ -81,18 +81,27 @@ export default function ProjectsSection() {
   const [activePhrase, setActivePhrase] = useState(0);
   const [selectedGameTitle, setSelectedGameTitle] = useState<string | null>(null);
   const [isArcadeModalOpen, setIsArcadeModalOpen] = useState(false);
-  const { progressMap } = useOverallLessonProgress();
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const { progressMap, writingXp } = useOverallLessonProgress();
 
   const isSessionLoading = status === "loading";
 
   const lessonSummary = useMemo(() => {
+    if (!hasHydrated) {
+      return {
+        streakBest: 0,
+        badgeCount: 0,
+        weeklyXp: 0,
+      };
+    }
+
     const totalCompleted = lessons.reduce((acc, lesson) => {
       const progress = progressMap[lesson.id];
       if (!progress) return acc;
       return progress.completedStepIds.length >= lesson.steps.length ? acc + 1 : acc;
     }, 0);
 
-    const xpEarned = lessons.reduce((acc, lesson) => {
+    const lessonXp = lessons.reduce((acc, lesson) => {
       const progress = progressMap[lesson.id];
       if (!progress) return acc;
       if (progress.completedStepIds.length >= lesson.steps.length) {
@@ -101,14 +110,15 @@ export default function ProjectsSection() {
       return acc;
     }, 0);
 
-    const streakApprox = Math.max(totalCompleted * 3, xpEarned > 0 ? 3 : 0);
+    const totalXp = lessonXp + Math.round(writingXp ?? 0);
+    const streakApprox = Math.max(totalCompleted * 3, totalXp > 0 ? 3 : 0);
 
     return {
       streakBest: streakApprox,
       badgeCount: totalCompleted,
-      weeklyXp: xpEarned,
+      weeklyXp: totalXp,
     };
-  }, [progressMap]);
+  }, [hasHydrated, progressMap, writingXp]);
 
   const openArcadeGate = (gameTitle?: string) => {
     if (isSessionLoading) return;
@@ -134,6 +144,10 @@ export default function ProjectsSection() {
 
     closeArcadeGate();
   };
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => {

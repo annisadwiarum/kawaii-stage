@@ -3,6 +3,7 @@ import { Cherry } from "lucide-react";
 const navLinks = [
   { label: "Modules", href: "#modules" },
   { label: "Arcade", href: "#games" },
+  { label: "Writing Lab", href: "/write" },
   { label: "Contact", href: "#contact" },
 ];
 

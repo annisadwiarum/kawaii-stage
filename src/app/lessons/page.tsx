@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LessonNavigation } from "@/components/lessons/LessonNavigation";
 import { LessonPlayer } from "@/components/lessons/LessonPlayer";
 import { lessons } from "@/data/lessons";
@@ -77,6 +78,12 @@ export default function LessonsPage() {
           <p className="text-sm text-indigo-100/80">
             Setiap lesson cuma 5 menit, lengkap dengan audio, latihan tulis, dan kuis cepat. Selesaikan buat nambah streak & XP.
           </p>
+          <Link
+            href="/write"
+            className="inline-flex items-center justify-center rounded-full border border-pink-400/50 bg-pink-500/15 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-pink-200 transition hover:bg-pink-500/25"
+          >
+            Buka Writing Lab →
+          </Link>
           <LessonNavigation
             lessons={lessons}
             activeLessonId={activeLesson.id}

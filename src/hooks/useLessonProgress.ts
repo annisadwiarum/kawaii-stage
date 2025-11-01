@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  getWritingProgressSnapshot,
+  subscribeWritingProgress,
+} from "./useWritingPractice";
 
 type LessonState = {
   completedStepIds: string[];
@@ -139,26 +143,36 @@ export function useLessonProgress(lessonId: string, totalSteps: number) {
 
 export function useOverallLessonProgress() {
   const [progressMap, setProgressMap] = useState<LessonProgressMap>(() => getStore());
+  const [writingSnapshot, setWritingSnapshot] = useState(() => getWritingProgressSnapshot());
 
   useEffect(() => {
     setProgressMap(getStore());
+    setWritingSnapshot(getWritingProgressSnapshot());
     const unsubscribeStore = subscribe(() => {
       setProgressMap(getStore());
+    });
+    const unsubscribeWriting = subscribeWritingProgress(() => {
+      setWritingSnapshot(getWritingProgressSnapshot());
     });
 
     if (isBrowser) {
       const handleStorage = () => {
         store = loadProgress();
         setProgressMap(getStore());
+        setWritingSnapshot(getWritingProgressSnapshot());
       };
       window.addEventListener("storage", handleStorage);
       return () => {
         unsubscribeStore();
+        unsubscribeWriting();
         window.removeEventListener("storage", handleStorage);
       };
     }
 
-    return unsubscribeStore;
+    return () => {
+      unsubscribeStore();
+      unsubscribeWriting();
+    };
   }, []);
 
   const totalLessons = Object.keys(progressMap).length;
@@ -166,11 +180,14 @@ export function useOverallLessonProgress() {
     (state) => state.completedStepIds.length >= state.totalSteps
   ).length;
   const totalXp = Object.values(progressMap).reduce((acc, state) => acc + state.quizScore, 0);
+  const writingXp = Object.values(writingSnapshot).reduce((acc, state) => acc + state.totalXp, 0);
 
   return {
     progressMap,
     totalLessons,
     completedLessons,
-    totalXp,
+    totalXp: totalXp + writingXp,
+    writingXp,
+    writingProgress: writingSnapshot,
   } as const;
 }

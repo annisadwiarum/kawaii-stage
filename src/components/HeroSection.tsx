@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-const focusTags = ["Hiragana", "Katakana", "Kanji", "Culture", "Slang"];
+const focusTags = ["Hiragana", "Katakana", "Kanji", "Writing", "Culture", "Slang"];
 
-type Intent = "modules" | "games";
+type Intent = "modules" | "games" | "writing";
 
 export default function HeroSection() {
   const { data: session, status } = useSession();
@@ -39,6 +39,12 @@ export default function HeroSection() {
       return;
     }
 
+    if (modalIntent === "writing") {
+      router.push("/write");
+      setModalIntent(null);
+      return;
+    }
+
     const sectionId = "games";
     const destination = document.getElementById(sectionId);
     if (destination) {
@@ -56,12 +62,19 @@ export default function HeroSection() {
             "Kami siapin jalur 5 menit yang ringan dan playful. Yuk gas sebelum vibes-nya hilang!",
           confirmLabel: "Mulai petualangan",
         }
-      : {
-          targetTitle: "Arcade neon lagi nunggu kamu buat duel kosakata!",
-          targetDescription:
-            "Kumpulin Sakura Coins, raih badge, dan bikin streak makin panjang sebelum teman lain nyusul.",
-          confirmLabel: "Masuk ke arcade",
-        }
+      : modalIntent === "games"
+        ? {
+            targetTitle: "Arcade neon lagi nunggu kamu buat duel kosakata!",
+            targetDescription:
+              "Kumpulin Sakura Coins, raih badge, dan bikin streak makin panjang sebelum teman lain nyusul.",
+            confirmLabel: "Masuk ke arcade",
+          }
+        : {
+            targetTitle: "Siap latihan stroke hiragana bareng pen neon?",
+            targetDescription:
+              "Tulis stroke sesuai urutan, dapatkan feedback akurasi, dan kumpulin XP bonus khusus penmanship.",
+            confirmLabel: "Gas latihan nulis",
+          }
     : null;
 
   return (
@@ -147,6 +160,16 @@ export default function HeroSection() {
           className="rounded-full border border-white/20 px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "authenticated" ? "Masuk Arcade" : "Coba Mini Game"}
+        </motion.button>
+        <motion.button
+          type="button"
+          whileHover={{ scale: isSessionLoading ? 1 : 1.05 }}
+          whileTap={{ scale: isSessionLoading ? 1 : 0.96 }}
+          onClick={() => handleAdventure("writing")}
+          disabled={isSessionLoading}
+          className="rounded-full border border-pink-500/30 px-7 py-3 text-sm font-semibold text-pink-200 transition-colors hover:bg-pink-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {status === "authenticated" ? "Latihan Menulis" : "Coba Nulis Kana"}
         </motion.button>
       </motion.div>
 
