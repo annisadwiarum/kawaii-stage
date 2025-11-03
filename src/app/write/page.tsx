@@ -7,36 +7,35 @@ import { motion } from "framer-motion";
 import { PenTool, ShieldCheck, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import WritingTrainer from "@/components/writing/WritingTrainer";
+import { CharacterAccordion } from "@/components/writing/CharacterAccordion";
 import { type WritingScript, writingCharacters } from "@/data/writingCharacters";
 import { useWritingProgressOverview } from "@/hooks/useWritingPractice";
-
-type ScriptFilter = "all" | WritingScript;
-
-const scriptFilters: { value: ScriptFilter; label: string }[] = [
-  { value: "all", label: "Semua" },
-  { value: "hiragana", label: "Hiragana" },
-  { value: "katakana", label: "Katakana" },
-  { value: "kanji", label: "Kanji" },
-];
 
 export default function WritingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [filter, setFilter] = useState<ScriptFilter>("all");
   const { snapshot, totalAttempts, totalXp } = useWritingProgressOverview();
 
-  const filteredCharacters = useMemo(() => {
-    if (filter === "all") return writingCharacters;
-    return writingCharacters.filter((character) => character.script === filter);
-  }, [filter]);
+  const groupedCharacters = useMemo(() => {
+    const groups: Record<WritingScript, typeof writingCharacters> = {
+      hiragana: [],
+      katakana: [],
+      kanji: [],
+    };
+    for (const char of writingCharacters) {
+      groups[char.script].push(char);
+    }
+    return groups;
+  }, []);
 
-  const [activeId, setActiveId] = useState(filteredCharacters[0]?.id ?? "");
+  const [activeId, setActiveId] = useState(writingCharacters[0]?.id ?? "");
 
   useEffect(() => {
-    if (filteredCharacters.length > 0) {
-      setActiveId(filteredCharacters[0].id);
+    const firstChar = Object.values(groupedCharacters).flat()[0];
+    if (firstChar) {
+      setActiveId(firstChar.id);
     }
-  }, [filteredCharacters]);
+  }, [groupedCharacters]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -57,7 +56,7 @@ export default function WritingPage() {
     return null;
   }
 
-  const activeCharacter = filteredCharacters.find((character) => character.id === activeId);
+  const activeCharacter = writingCharacters.find((character) => character.id === activeId);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-zinc-950 to-indigo-950 px-6 py-16 text-white">
@@ -89,59 +88,19 @@ export default function WritingPage() {
               <span>Progress tersimpan otomatis · Bonus XP dihitung dari akurasi</span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {scriptFilters.map((option) => {
-              const isActive = option.value === filter;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setFilter(option.value)}
-                  className={`rounded-full border px-4 py-2 text-sm transition ${
-                    isActive
-                      ? "border-pink-400 bg-pink-500/20 text-pink-100"
-                      : "border-white/10 bg-white/5 text-indigo-100 hover:bg-white/10"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
         </header>
 
         <div className="grid gap-8 lg:grid-cols-[0.32fr_0.68fr]">
           <aside className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5">
               <p className="text-xs uppercase tracking-[0.28em] text-indigo-300/80">Daftar karakter</p>
-              <div className="mt-4 flex flex-col gap-2">
-                {filteredCharacters.map((character) => {
-                  const progress = snapshot[character.id];
-                  const isActive = character.id === activeId;
-                  return (
-                    <button
-                      key={character.id}
-                      type="button"
-                      onClick={() => setActiveId(character.id)}
-                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-                        isActive
-                          ? "border-pink-400/60 bg-pink-500/20 text-white"
-                          : "border-white/10 bg-black/40 text-indigo-100 hover:border-pink-400/40 hover:text-white"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-lg font-semibold">{character.glyph}</p>
-                        <p className="text-xs uppercase tracking-wide text-indigo-200/70">
-                          {character.script} · {character.romaji}
-                        </p>
-                      </div>
-                      <div className="text-right text-xs text-indigo-200/70">
-                        <p>Best {progress ? Math.round((progress.bestAccuracy ?? 0) * 100) : 0}%</p>
-                        <p>XP {progress ? progress.totalXp : 0}</p>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="mt-4">
+                <CharacterAccordion
+                  groupedCharacters={groupedCharacters}
+                  activeId={activeId}
+                  onSelect={setActiveId}
+                  snapshot={snapshot}
+                />
               </div>
             </div>
 
@@ -166,7 +125,7 @@ export default function WritingPage() {
             </div>
           </aside>
 
-          <section>
+          <section className="sticky top-16">
             {activeCharacter ? <WritingTrainer character={activeCharacter} /> : null}
           </section>
         </div>

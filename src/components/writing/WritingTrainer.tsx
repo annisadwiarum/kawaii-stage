@@ -4,7 +4,11 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
 import { PenLine, Play, RotateCcw, Sparkles } from "lucide-react";
-import type { WritingCharacter, WritingStroke, WritingStrokePoint } from "@/data/writingCharacters";
+import type {
+  WritingCharacter,
+  WritingStroke,
+  WritingStrokePoint,
+} from "@/data/writingCharacters";
 import { useWritingPractice } from "@/hooks/useWritingPractice";
 
 type Props = {
@@ -16,11 +20,13 @@ type PlaybackState = {
   index: number;
 };
 
-const SAMPLE_POINTS = 64;
+const SAMPLE_POINTS = 128;
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
 
-const distance = (a: WritingStrokePoint, b: WritingStrokePoint) => Math.hypot(a.x - b.x, a.y - b.y);
+const distance = (a: WritingStrokePoint, b: WritingStrokePoint) =>
+  Math.hypot(a.x - b.x, a.y - b.y);
 
 const polylineLength = (points: WritingStrokePoint[]) => {
   if (points.length < 2) return 0;
@@ -31,7 +37,10 @@ const polylineLength = (points: WritingStrokePoint[]) => {
   return total;
 };
 
-const resamplePolyline = (points: WritingStrokePoint[], sampleCount: number) => {
+const resamplePolyline = (
+  points: WritingStrokePoint[],
+  sampleCount: number
+) => {
   if (points.length === 0) return [];
   if (points.length === 1) {
     return Array.from({ length: sampleCount }, () => ({ ...points[0] }));
@@ -93,15 +102,25 @@ const getBounds = (points: WritingStrokePoint[]) => {
   };
 };
 
-const normaliseToBounds = (source: WritingStrokePoint[], targetBounds: ReturnType<typeof getBounds>) => {
+const normaliseToBounds = (
+  source: WritingStrokePoint[],
+  targetBounds: ReturnType<typeof getBounds>
+) => {
   const bounds = getBounds(source);
   return source.map((point) => ({
-    x: targetBounds.minX + ((point.x - bounds.minX) / bounds.width) * targetBounds.width,
-    y: targetBounds.minY + ((point.y - bounds.minY) / bounds.height) * targetBounds.height,
+    x:
+      targetBounds.minX +
+      ((point.x - bounds.minX) / bounds.width) * targetBounds.width,
+    y:
+      targetBounds.minY +
+      ((point.y - bounds.minY) / bounds.height) * targetBounds.height,
   }));
 };
 
-const evaluateStrokeSimilarity = (expected: WritingStrokePoint[], user: WritingStrokePoint[]) => {
+const evaluateStrokeSimilarity = (
+  expected: WritingStrokePoint[],
+  user: WritingStrokePoint[]
+) => {
   if (expected.length < 2 || user.length < 2) return 0;
   const targetBounds = getBounds(expected);
   const scaledUser = normaliseToBounds(user, targetBounds);
@@ -119,12 +138,31 @@ const evaluateStrokeSimilarity = (expected: WritingStrokePoint[], user: WritingS
 };
 
 const pointsToPath = (points: WritingStrokePoint[]) => {
-  if (points.length === 0) return "";
-  const [first, ...rest] = points;
-  return `M ${first.x} ${first.y} ${rest.map((point) => `L ${point.x} ${point.y}`).join(" ")}`;
+  if (points.length < 3) {
+    if (points.length === 0) return "";
+    const [first, ...rest] = points;
+    return `M ${first.x} ${first.y} ${rest
+      .map((point) => `L ${point.x} ${point.y}`)
+      .join(" ")}`;
+  }
+
+  let path = `M ${points[0].x},${points[0].y}`;
+  let i;
+  for (i = 1; i < points.length - 2; i++) {
+    const xc = (points[i].x + points[i + 1].x) / 2;
+    const yc = (points[i].y + points[i + 1].y) / 2;
+    path += ` Q ${points[i].x},${points[i].y} ${xc},${yc}`;
+  }
+  // For the last 2 points
+  path += ` Q ${points[i].x},${points[i].y} ${points[i + 1].x},${
+    points[i + 1].y
+  }`;
+
+  return path;
 };
 
-const pointsToPolyline = (points: WritingStrokePoint[]) => points.map((point) => `${point.x},${point.y}`).join(" ");
+const pointsToPolyline = (points: WritingStrokePoint[]) =>
+  points.map((point) => `${point.x},${point.y}`).join(" ");
 
 export function WritingTrainer({ character }: Props) {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -134,8 +172,14 @@ export function WritingTrainer({ character }: Props) {
   const [userStrokes, setUserStrokes] = useState<WritingStrokePoint[][]>([]);
   const [strokeScores, setStrokeScores] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [playback, setPlayback] = useState<PlaybackState>({ running: false, index: -1 });
-  const [sessionResult, setSessionResult] = useState<{ accuracy: number; xp: number } | null>(null);
+  const [playback, setPlayback] = useState<PlaybackState>({
+    running: false,
+    index: -1,
+  });
+  const [sessionResult, setSessionResult] = useState<{
+    accuracy: number;
+    xp: number;
+  } | null>(null);
 
   const { state, recordAttempt } = useWritingPractice(character.id);
 
@@ -184,7 +228,9 @@ export function WritingTrainer({ character }: Props) {
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
     const point = { x: clamp(x, 0, 100), y: clamp(y, 0, 100) };
-    setCurrentStroke((prev) => (prev.length === 0 ? [point] : [...prev, point]));
+    setCurrentStroke((prev) =>
+      prev.length === 0 ? [point] : [...prev, point]
+    );
   };
 
   const finishStroke = (strokePoints: WritingStrokePoint[]) => {
@@ -199,7 +245,10 @@ export function WritingTrainer({ character }: Props) {
       return;
     }
 
-    const similarity = evaluateStrokeSimilarity(expectedStroke.points, strokePoints);
+    const similarity = evaluateStrokeSimilarity(
+      expectedStroke.points,
+      strokePoints
+    );
 
     if (similarity < 0.25) {
       setFeedback("Masih melenceng. Perhatikan urutan dan bentuk.");
@@ -213,8 +262,8 @@ export function WritingTrainer({ character }: Props) {
       similarity > 0.8
         ? "Mantap! Stroke kamu nyaris sempurna."
         : similarity > 0.55
-          ? "Nice! Udah searah, tinggal rapihin dikit."
-          : "Lumayan, ulangi pelan biar garisnya lebih stabil.";
+        ? "Nice! Udah searah, tinggal rapihin dikit."
+        : "Lumayan, ulangi pelan biar garisnya lebih stabil.";
     setFeedback(positiveFeedback);
 
     setActiveStrokeIndex((prev) => prev + 1);
@@ -249,8 +298,8 @@ export function WritingTrainer({ character }: Props) {
       accuracy > 0.85
         ? "Super rapi! Simpan momentum ini."
         : accuracy > 0.65
-          ? "Udah mendekati, coba ulang biar makin cling."
-          : "Lanjut latihan, garis dasar harus makin stabil."
+        ? "Udah mendekati, coba ulang biar makin cling."
+        : "Lanjut latihan, garis dasar harus makin stabil."
     );
   }, [expectedStrokes.length, recordAttempt, strokeScores]);
 
@@ -289,14 +338,16 @@ export function WritingTrainer({ character }: Props) {
     expectedStrokes.length === 0
       ? ""
       : activeStrokeIndex >= expectedStrokes.length
-        ? "Semua stroke selesai"
-        : `Stroke ${activeStrokeIndex + 1} dari ${expectedStrokes.length}`;
+      ? "Semua stroke selesai"
+      : `Stroke ${activeStrokeIndex + 1} dari ${expectedStrokes.length}`;
 
   return (
     <div className="flex flex-col gap-6 rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.32em] text-indigo-300/80">Writing Lab</p>
+          <p className="text-xs uppercase tracking-[0.32em] text-indigo-300/80">
+            Writing Lab
+          </p>
           <h2 className="text-2xl font-semibold text-white">
             {character.glyph} · {character.romaji.toUpperCase()}
           </h2>
@@ -345,7 +396,8 @@ export function WritingTrainer({ character }: Props) {
               expectedStrokes={expectedStrokes}
             />
             <p className="mt-3 text-xs text-indigo-200/70">
-              Garis contoh hanya muncul saat kamu menekan tombol replay. Sisanya, coba tiru bentuk dari grid di atas.
+              Garis contoh hanya muncul saat kamu menekan tombol replay.
+              Sisanya, coba tiru bentuk dari grid di atas.
             </p>
           </div>
         </div>
@@ -353,21 +405,34 @@ export function WritingTrainer({ character }: Props) {
         <aside className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-black/30 p-4">
           <div className="space-y-3">
             <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-3">
-              <p className="text-xs uppercase tracking-[0.28em] text-indigo-300/80">Status</p>
-              <p className="mt-2 text-sm text-gray-200">Script: {character.script.toUpperCase()}</p>
-              <p className="text-sm text-gray-200">Meaning: {character.meaning}</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-indigo-300/80">
+                Status
+              </p>
+              <p className="mt-2 text-sm text-gray-200">
+                Script: {character.script.toUpperCase()}
+              </p>
               <p className="text-sm text-gray-200">
-                Difficulty: <span className="capitalize text-pink-300">{character.difficulty}</span>
+                Meaning: {character.meaning}
+              </p>
+              <p className="text-sm text-gray-200">
+                Difficulty:{" "}
+                <span className="capitalize text-pink-300">
+                  {character.difficulty}
+                </span>
               </p>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-3">
-              <p className="text-xs uppercase tracking-wide text-indigo-200/70">Skor per stroke</p>
+              <p className="text-xs uppercase tracking-wide text-indigo-200/70">
+                Skor per stroke
+              </p>
               <div className="mt-2 space-y-1.5 text-sm text-gray-200">
                 {expectedStrokes.map((stroke, index) => {
                   const score = strokeScores[index];
                   const completed = score !== undefined;
-                  const isActive = index === activeStrokeIndex && activeStrokeIndex < expectedStrokes.length;
+                  const isActive =
+                    index === activeStrokeIndex &&
+                    activeStrokeIndex < expectedStrokes.length;
                   return (
                     <div
                       key={stroke.id}
@@ -378,7 +443,11 @@ export function WritingTrainer({ character }: Props) {
                       }`}
                     >
                       <span>Stroke {index + 1}</span>
-                      <span className={completed ? "text-pink-300" : "text-indigo-200/60"}>
+                      <span
+                        className={
+                          completed ? "text-pink-300" : "text-indigo-200/60"
+                        }
+                      >
                         {completed ? `${Math.round(score * 100)}%` : "Belum"}
                       </span>
                     </div>
@@ -396,7 +465,9 @@ export function WritingTrainer({ character }: Props) {
                 <p className="mt-2 text-base font-semibold text-white">
                   Akurasi {Math.round(sessionResult.accuracy * 100)}%
                 </p>
-                <p className="text-sm text-pink-100/80">+{sessionResult.xp} XP ditambahkan</p>
+                <p className="text-sm text-pink-100/80">
+                  +{sessionResult.xp} XP ditambahkan
+                </p>
               </div>
             )}
 
@@ -407,7 +478,9 @@ export function WritingTrainer({ character }: Props) {
             )}
 
             <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-3 text-sm text-gray-200">
-              <p className="text-xs uppercase tracking-wide text-indigo-200/70">Riwayat</p>
+              <p className="text-xs uppercase tracking-wide text-indigo-200/70">
+                Riwayat
+              </p>
               <p className="mt-1">Percobaan: {state.attempts}</p>
               <p>Best accuracy: {Math.round(state.bestAccuracy * 100)}%</p>
               <p>Total XP: {state.totalXp}</p>
@@ -461,9 +534,17 @@ function PreviewStrokeGrid({
   const patternId = useId();
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/40 p-3">
-      <svg viewBox="0 0 100 100" className="aspect-square w-full select-none rounded-xl border border-white/10 bg-black/50">
+      <svg
+        viewBox="0 0 100 100"
+        className="aspect-square w-full select-none rounded-xl border border-white/10 bg-black/50"
+      >
         <defs>
-          <pattern id={patternId} width="25" height="25" patternUnits="userSpaceOnUse">
+          <pattern
+            id={patternId}
+            width="25"
+            height="25"
+            patternUnits="userSpaceOnUse"
+          >
             <path
               d="M 25 0 L 0 0 0 25"
               fill="none"
@@ -483,9 +564,15 @@ function PreviewStrokeGrid({
           strokeWidth="0.8"
         />
         {strokes.map((stroke, index) => (
-          <path
+          <polyline
             key={stroke.id}
-            d={pointsToPath(resamplePolyline(stroke.points, 64))}
+            points={pointsToPolyline(stroke.points)}
+            fill="none"
+            stroke={
+              index === strokes.length - 1
+                ? "rgba(251,113,133,0.9)"
+                : "rgba(129,140,248,0.5)"
+            }
             strokeWidth={index === strokes.length - 1 ? 3 : 2.2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -494,7 +581,10 @@ function PreviewStrokeGrid({
       </svg>
       <p className="text-xs font-medium text-indigo-200/80">
         {label}
-        <span className="text-indigo-200/50"> · {stageIndex + 1}/{totalStages}</span>
+        <span className="text-indigo-200/50">
+          {" "}
+          · {stageIndex + 1}/{totalStages}
+        </span>
       </p>
     </div>
   );
@@ -533,7 +623,12 @@ function InteractiveGrid({
       onPointerLeave={onPointerLeave}
     >
       <defs>
-        <pattern id={patternId} width="25" height="25" patternUnits="userSpaceOnUse">
+        <pattern
+          id={patternId}
+          width="25"
+          height="25"
+          patternUnits="userSpaceOnUse"
+        >
           <path
             d="M 25 0 L 0 0 0 25"
             fill="none"
@@ -557,9 +652,13 @@ function InteractiveGrid({
         expectedStrokes.map((stroke, index) => (
           <motion.path
             key={stroke.id}
-            d={pointsToPath(resamplePolyline(stroke.points, 64))}
+            d={pointsToPath(resamplePolyline(stroke.points, SAMPLE_POINTS))}
             fill="none"
-            stroke={playback.index === index ? "rgba(251,113,133,0.9)" : "rgba(129,140,248,0.5)"}
+            stroke={
+              playback.index === index
+                ? "rgba(251,113,133,0.9)"
+                : "rgba(129,140,248,0.5)"
+            }
             strokeWidth={playback.index === index ? 3 : 2.2}
             strokeLinecap="round"
             strokeLinejoin="round"
