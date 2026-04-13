@@ -87,16 +87,29 @@ export function useLessonProgress(lessonId: string, totalSteps: number) {
     const unsubscribe = subscribe(() => {
       setState(computeLessonState(lessonId, totalSteps));
     });
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, [lessonId, totalSteps]);
 
   const persist = useCallback(
     (updater: (prev: LessonState) => LessonState) => {
       setStore((prev) => {
         const current = prev[lessonId] ?? getDefaultLessonState(totalSteps);
+        const nextState = updater(current);
+        
+        // Fire and forget server action
+        import("@/app/actions/progress").then((mod) => {
+          mod.updateLessonProgressState(
+            lessonId,
+            nextState.completedStepIds,
+            nextState.quizScore,
+            nextState.totalSteps,
+            nextState.completedAt ? new Date(nextState.completedAt) : null
+          ).catch(console.error);
+        });
+
         return {
           ...prev,
-          [lessonId]: updater(current),
+          [lessonId]: nextState,
         };
       });
     },

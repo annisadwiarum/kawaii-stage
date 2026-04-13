@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { signIn, signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
@@ -25,7 +26,8 @@ export default function Page() {
   const searchParams = useSearchParams();
 
   const rawRedirect = searchParams.get("redirect");
-  const redirectTarget = rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/";
+  const redirectTarget =
+    rawRedirect && rawRedirect.startsWith("/") ? rawRedirect : "/";
 
   if (status === "loading") {
     return (
@@ -134,7 +136,7 @@ export default function Page() {
                   <div>
                     <p className="text-sm uppercase tracking-[0.3em] text-indigo-200/70">
                       Step into the stage
-                      </p>
+                    </p>
                     <h2 className="mt-3 text-2xl font-semibold text-white">
                       Sign In
                     </h2>
@@ -142,13 +144,18 @@ export default function Page() {
                       Dengan login kamu setuju sama vibe positif dan anti drama
                       kami ya~
                     </p>
-                    </div>
-                    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-3xl">
-                      ✨
-                    </div>
+                  </div>
+                  <Image
+                    src={"/gif/happy.gif"}
+                    alt="happy"
+                    width={200}
+                    height={200}
+                  />
                   <div className="flex flex-col gap-6">
                     <Button
-                      onClick={() => signIn("google", { callbackUrl: redirectTarget })}
+                      onClick={() =>
+                        signIn("google", { callbackUrl: redirectTarget })
+                      }
                       className="flex w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/90 py-3 text-sm font-semibold text-slate-900 transition-transform hover:scale-[1.02] hover:bg-white"
                     >
                       <FcGoogle className="text-xl" />

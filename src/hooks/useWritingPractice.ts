@@ -87,7 +87,7 @@ export function useWritingPractice(characterId: string) {
     const unsubscribe = subscribeWritingProgress(() => {
       setState(computeState(characterId));
     });
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, [characterId]);
 
   const recordAttempt = useCallback(
@@ -97,16 +97,28 @@ export function useWritingPractice(characterId: string) {
       setStore((prev) => {
         const previous = prev[characterId] ?? getDefaultState();
         const bestAccuracy = Math.max(previous.bestAccuracy, accuracy);
+        const nextState = {
+          attempts: previous.attempts + 1,
+          bestAccuracy,
+          totalXp: previous.totalXp + xpGain,
+          lastAccuracy: accuracy,
+          lastXpGain: xpGain,
+          lastPlayedAt: timestamp,
+        };
+
+        // Fire and forget server sync
+        import("@/app/actions/progress").then((mod) => {
+          mod.upsertWritingProgressAction(
+            characterId,
+            1, // increment try by 1
+            xpGain,
+            accuracy
+          ).catch(console.error);
+        });
+
         return {
           ...prev,
-          [characterId]: {
-            attempts: previous.attempts + 1,
-            bestAccuracy,
-            totalXp: previous.totalXp + xpGain,
-            lastAccuracy: accuracy,
-            lastXpGain: xpGain,
-            lastPlayedAt: timestamp,
-          },
+          [characterId]: nextState,
         };
       });
       return xpGain;
@@ -150,7 +162,7 @@ export function useWritingProgressOverview() {
       };
     }
 
-    return unsubscribe;
+    return () => { unsubscribe(); };
   }, []);
 
   const totalCharacters = Object.keys(snapshot).length;
