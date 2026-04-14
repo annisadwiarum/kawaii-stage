@@ -137,12 +137,13 @@ export default function ProjectsSection() {
   };
 
   const confirmArcadeGate = () => {
-    const arcadeSection = document.getElementById("games");
-    if (arcadeSection) {
-      arcadeSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-
     closeArcadeGate();
+    
+    if (selectedGameTitle === "Kana Speed Tap") {
+      router.push("/arcade/kana-speed-tap");
+    } else {
+      router.push("/arcade");
+    }
   };
 
   useEffect(() => {
