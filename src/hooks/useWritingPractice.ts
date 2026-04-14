@@ -54,6 +54,34 @@ const setStore = (updater: (prev: WritingProgressMap) => WritingProgressMap) => 
   listeners.forEach((listener) => listener());
 };
 
+let hasHydrated = false;
+
+export const syncWritingProgressFromServer = async () => {
+  if (hasHydrated || !isBrowser) return;
+  hasHydrated = true;
+  try {
+    const { fetchWritingProgress } = await import("@/app/actions/progress");
+    const serverData = await fetchWritingProgress();
+    if (serverData && serverData.length > 0) {
+      setStore((prev) => {
+        const next = { ...prev };
+        serverData.forEach((item: any) => {
+          next[item.characterId] = {
+            attempts: item.attempts,
+            bestAccuracy: item.lastAccuracy ?? 0, 
+            totalXp: item.totalXp,
+            lastPlayedAt: item.lastPracticed ? new Date(item.lastPracticed).toISOString() : undefined,
+          };
+        });
+        return next;
+      });
+    }
+  } catch (error) {
+    console.error("Hydration error:", error);
+    hasHydrated = false;
+  }
+};
+
 export const subscribeWritingProgress = (listener: () => void) => {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -83,6 +111,7 @@ export function useWritingPractice(characterId: string) {
   const [state, setState] = useState<WritingProgressState>(() => computeState(characterId));
 
   useEffect(() => {
+    syncWritingProgressFromServer();
     setState(computeState(characterId));
     const unsubscribe = subscribeWritingProgress(() => {
       setState(computeState(characterId));
@@ -145,6 +174,7 @@ export function useWritingProgressOverview() {
   const [snapshot, setSnapshot] = useState<WritingProgressMap>(() => getStore());
 
   useEffect(() => {
+    syncWritingProgressFromServer();
     setSnapshot(getStore());
     const unsubscribe = subscribeWritingProgress(() => {
       setSnapshot(getStore());

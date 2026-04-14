@@ -37,13 +37,16 @@ An interactive canvas for tracing Japanese Kana and Kanji.
 
 ## 4. State Management & Data Persistence
 
-Currently, the application operates primarily as a **client-side state** app in terms of user progress. 
+The application employs a **Hybrid State Architecture** via Server Actions and `localStorage` to ensure cross-device persistence without sacrificing "zero-latency" UX.
 
 - **Auth State**: Handled globally via NextAuth's `<SessionProvider>`.
-- **Progress State (`src/hooks/useLessonProgress.ts` & `useWritingPractice.ts`)**: 
-  - **Storage**: `window.localStorage`
-  - **Structure**: Uses custom pub/sub patterns and React state synchronization to allow components across the app (like the Landing Page's sneak peek and the actual Lesson pages) to observe changes to XP, completed steps, and streaks instantly.
-  - *Limitation*: Progress is lost if the user switches browsers or devices, despite being logged in via Google.
+- **Database (Server)**:
+  - **ORM**: Prisma Client.
+  - **Driver**: SQLite (`better-sqlite3`) as the current persistent datastore.
+  - Acts as the ultimate source of truth for user lessons and writing progress across multiple devices.
+- **Progress State / Optimistic UI (`useLessonProgress` & `useWritingPractice`)**: 
+  - **Storage**: `window.localStorage` caching.
+  - **Structure**: Hooks execute an async **hydration** phase on initialization—fetching the latest data for the logged-in user from the Server via Next.js Server Actions (`src/app/actions/progress.ts`). The fetched data updates the local store. Subsequent gameplay read/writes strictly interact with `localStorage` for 0ms reactivity while dispatching "fire-and-forget" state updates back to the Server to keep the database synced.
 
 ## 5. Application Structure
 

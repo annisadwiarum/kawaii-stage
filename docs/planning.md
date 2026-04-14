@@ -5,15 +5,15 @@ This document outlines the proposed phases for breathing new life into the **Kaw
 ## Phase 1: Database Migration (Cloud Persistence)
 **Goal:** Transition from `localStorage` to a robust server-side database so user progress is saved natively to their accounts across devices.
 
-- [ ] **1.1 Setup Database:** Initialize a PostgreSQL database (e.g., via Supabase or Vercel Postgres).
-- [ ] **1.2 Setup ORM:** Install Prisma, initialize schema, and create models:
+- [x] **1.1 Setup Database:** Initialize a PostgreSQL database (e.g., via Supabase or Vercel Postgres) - *Using SQLite for local dev currently*.
+- [x] **1.2 Setup ORM:** Install Prisma, initialize schema, and create models:
   - `User` and `Account` (extending NextAuth default schema).
   - `LessonProgress`: Tracks `completedStepIds`, `quizScore`, `totalSteps`, and `status`.
   - `WritingProgress`: Tracks stats for each character (`attempts`, `accuracy`, `xp`).
-- [ ] **1.3 Build API Routes / Server Actions:** 
+- [x] **1.3 Build API Routes / Server Actions:** 
   - Create functions to fetch progress for the logged-in user.
   - Create mutations to sync state (e.g., updating XP or completing a lesson).
-- [ ] **1.4 Refactor Frontend Hooks:** Modify `useLessonProgress` and `useWritingPractice` to read from/write to the new API instead of `localStorage`. Manage optimistic UI updates for a snappy feel.
+- [x] **1.4 Refactor Frontend Hooks:** Modify `useLessonProgress` and `useWritingPractice` to read from/write to the new API via hydration while maintaining `localStorage` for optimistic UI speeds.
 
 ## Phase 2: Mini Game Arcade Implementation
 **Goal:** Fulfill the "Coming Soon" promise on the landing page by turning the teased arcade into real, playable games.

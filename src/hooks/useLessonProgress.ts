@@ -56,6 +56,34 @@ const setStore = (updater: (prev: LessonProgressMap) => LessonProgressMap) => {
   listeners.forEach((listener) => listener());
 };
 
+let hasHydrated = false;
+
+export const syncLessonProgressFromServer = async () => {
+  if (hasHydrated || !isBrowser) return;
+  hasHydrated = true;
+  try {
+    const { fetchLessonProgress } = await import("@/app/actions/progress");
+    const serverData = await fetchLessonProgress();
+    if (serverData && serverData.length > 0) {
+      setStore((prev) => {
+        const next = { ...prev };
+        serverData.forEach((item: any) => {
+          next[item.lessonId] = {
+            completedStepIds: JSON.parse(item.completedStepIds),
+            quizScore: item.quizScore,
+            totalSteps: item.totalSteps,
+            completedAt: item.completedAt ? new Date(item.completedAt).toISOString() : undefined,
+          };
+        });
+        return next;
+      });
+    }
+  } catch (error) {
+    console.error("Hydration error:", error);
+    hasHydrated = false;
+  }
+};
+
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -83,6 +111,7 @@ export function useLessonProgress(lessonId: string, totalSteps: number) {
   const [state, setState] = useState<LessonState>(() => computeLessonState(lessonId, totalSteps));
 
   useEffect(() => {
+    syncLessonProgressFromServer();
     setState(computeLessonState(lessonId, totalSteps));
     const unsubscribe = subscribe(() => {
       setState(computeLessonState(lessonId, totalSteps));
@@ -159,6 +188,7 @@ export function useOverallLessonProgress() {
   const [writingSnapshot, setWritingSnapshot] = useState(() => getWritingProgressSnapshot());
 
   useEffect(() => {
+    syncLessonProgressFromServer();
     setProgressMap(getStore());
     setWritingSnapshot(getWritingProgressSnapshot());
     const unsubscribeStore = subscribe(() => {
