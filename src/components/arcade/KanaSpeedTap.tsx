@@ -12,6 +12,7 @@ export default function KanaSpeedTap() {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameover">("idle");
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
   const [combos, setCombos] = useState(0);
   
   // Question state
@@ -87,15 +88,47 @@ export default function KanaSpeedTap() {
       timer = window.setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && gameState === "playing") {
-      setGameState("gameover");
     }
     return () => window.clearInterval(timer);
   }, [gameState, timeLeft]);
 
+  // Game Over Effect
+  useEffect(() => {
+    if (timeLeft === 0 && gameState === "playing") {
+      setGameState("gameover");
+      
+      const xpReward = Math.floor(score / 5);
+      const coins = Math.floor(score / 10);
+      
+      if (score > highScore) {
+        setHighScore(score);
+      }
+      
+      import("@/app/actions/progress").then((mod) => {
+        mod.upsertArcadeProgressAction("kana-speed-tap", score, xpReward, coins)
+          .catch(console.error);
+      });
+    }
+  }, [timeLeft, gameState, score, highScore]);
+
+  // Hydrate highscore on mount
+  useEffect(() => {
+    import("@/app/actions/progress").then((mod) => {
+      mod.fetchArcadeProgress("kana-speed-tap")
+        .then((data) => {
+          if (data) setHighScore(data.highScore);
+        })
+        .catch(console.error);
+    });
+  }, []);
+
   // Convert game score to real XP based on some scaling logic
   const calculateXpReward = () => {
     return Math.floor(score / 5);
+  };
+
+  const calculateCoinsReward = () => {
+    return Math.floor(score / 10);
   };
 
   return (
@@ -115,8 +148,15 @@ export default function KanaSpeedTap() {
                <Zap className="w-4 h-4 mr-1" /> {combos}x Combo!
              </motion.div>
            )}
-          <div className="text-xl font-bold flex items-center gap-2">
-            Score: <span className="text-primary">{score}</span>
+          <div className="flex flex-col items-end">
+            <div className="text-xl font-bold flex items-center gap-2">
+              Score: <span className="text-primary">{score}</span>
+            </div>
+            {highScore > 0 && (
+              <div className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                <Trophy className="w-3 h-3 text-amber-500" /> Best: {Math.max(score, highScore)}
+              </div>
+            )}
           </div>
         </div>
       </div>

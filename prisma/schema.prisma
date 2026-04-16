@@ -43,6 +43,8 @@ model User {
   sessions      Session[]
   lessonProgress LessonProgress[]
   writingProgress WritingProgress[]
+  arcadeProgress ArcadeProgress[]
+  sakuraCoins   Int       @default(0)
 }
 
 model VerificationToken {
@@ -80,4 +82,18 @@ model WritingProgress {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, characterId])
+}
+
+model ArcadeProgress {
+  id            String   @id @default(cuid())
+  userId        String
+  gameId        String
+  highScore     Int      @default(0)
+  totalXp       Int      @default(0)
+  playCount     Int      @default(0)
+  lastPlayedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
 }
